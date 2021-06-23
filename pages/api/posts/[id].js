@@ -8,22 +8,20 @@ export default async function handler(req, res) {
     
     await app.prepare();
 
-    const pathname = `.next/server/pages/posts/${id}`;
+    const key = `/posts/${id}`;
+    const pathname = app.server.incrementalCache.incrementalOptions.pagesDir + key;
 
     try {
-        if (existsSync(pathname + '.html')) {
-            await promises.unlink(pathname + '.html');
+        if (existsSync(pathname + key + '.html')) {
+            await promises.unlink(pathname + key + '.html');
         }
-        if (existsSync(pathname + '.json')) {
-            await promises.unlink(pathname + '.json');
+        if (existsSync(pathname + key + '.json')) {
+            await promises.unlink(pathname + key + '.json');
         }
 
-        //await app.server.incrementalCache.cache.del(`/posts/${id}`);
+        await app.server.incrementalCache.cache.del(key);
 
-        const cachedData = await app.server.incrementalCache.get(`/posts/${id}`);
-
-
-        res.status(200).json({data: cachedData});
+        res.status(200).json({delete: key, pathname});
     }
     catch(err){
         res.status(500).json({err});
